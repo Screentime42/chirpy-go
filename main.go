@@ -35,13 +35,13 @@ func main() {
 	mux.Handle("/app/", fsHandler)
 
 	// Health check endpoint for readiness probes.
-	mux.HandleFunc("GET /healthz", handlerReadiness)
+	mux.HandleFunc("GET /api/healthz", handlerReadiness)
 
 	// Reset the metrics counter.
-	mux.HandleFunc("POST /reset", apiCfg.handlerReset)
+	mux.HandleFunc("POST /admin/reset", apiCfg.handlerReset)
 
 	// Expose current metrics (e.g., file server hit count).
-	mux.HandleFunc("GET /metrics", apiCfg.handlerMetrics)
+	mux.HandleFunc("GET /admin/metrics", apiCfg.handlerMetrics)
 
 	srv := &http.Server{
 		Addr:    ":" + port,
