@@ -8,7 +8,13 @@ import (
 	"log"
 	"net/http"
 	"sync/atomic"
+	
+	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
+	
 )
+
+
 
 
 // apiConfig holds shared application state.
@@ -18,7 +24,8 @@ type apiConfig struct {
 }
 
 func main() {
-	
+	godotenv.Load()
+
 	// Application configuration constants.
 	const filepathRoot = "."
 	const port = "8080"
