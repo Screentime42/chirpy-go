@@ -8,8 +8,11 @@ import (
 	"log"
 	"net/http"
 	"sync/atomic"
+	"os"
+	"database/sql"
 	
 	"github.com/joho/godotenv"
+	"github.com/Screentime42/chirpy-go/internal/database"
 	_ "github.com/lib/pq"
 	
 )
@@ -21,19 +24,33 @@ import (
 // fileserverHits tracks how many times the file server endpoint is accessed.
 type apiConfig struct {
 	fileserverHits atomic.Int32
+	db					*database.Queries
 }
 
 func main() {
-	godotenv.Load()
-
 	// Application configuration constants.
 	const filepathRoot = "."
 	const port = "8080"
 
-	// Initialize API configuration, including the atomic hit counter.
+	godotenv.Load()
+
+	dbURL := os.Getenv("DB_URL")
+	if dbURL == "" {
+		log.Fatal("DB_URL must be set")
+	}
+
+	dbConn, err := sql.Open("postgres", dbURL)
+	if err != nil {
+		log.Fatalf("Error opening database: %s", err)
+}
+
+	dbQueries := database.New(dbConn)
+
 	apiCfg := apiConfig{
 		fileserverHits: atomic.Int32{},
+		db:             dbQueries,
 	}
+
 
 	mux := http.NewServeMux()
 
