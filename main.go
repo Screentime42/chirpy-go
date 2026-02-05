@@ -25,6 +25,7 @@ import (
 type apiConfig struct {
 	fileserverHits atomic.Int32
 	db					*database.Queries
+	Platform			string
 }
 
 func main() {
@@ -32,6 +33,7 @@ func main() {
 	const filepathRoot = "."
 	const port = "8080"
 
+	// Loading database
 	godotenv.Load()
 
 	dbURL := os.Getenv("DB_URL")
@@ -39,22 +41,29 @@ func main() {
 		log.Fatal("DB_URL must be set")
 	}
 
+	platform := os.Getenv("PLATFORM")
+	if platform == "" {
+		platform = "prod"
+	}
+
 	dbConn, err := sql.Open("postgres", dbURL)
 	if err != nil {
 		log.Fatalf("Error opening database: %s", err)
-}
+	}
 
 	dbQueries := database.New(dbConn)
 
 	apiCfg := apiConfig{
-		fileserverHits: atomic.Int32{},
-		db:             dbQueries,
+		fileserverHits: 	atomic.Int32{},
+		db:             	dbQueries,
+		Platform:			platform,
 	}
 
 
 	mux := http.NewServeMux()
 
-	// Create a file server for /app and wrap it with middleware // that increments the hit counter on each request.
+	// Create a file server for /app and wrap it with middleware 
+	// that increments the hit counter on each request.
 	fsHandler := apiCfg.middlewareMetricsInc(http.StripPrefix("/app", http.FileServer(http.Dir(filepathRoot))))
 	mux.Handle("/app/", fsHandler)
 
@@ -69,6 +78,9 @@ func main() {
 
 	// Expose current metrics (e.g., file server hit count).
 	mux.HandleFunc("GET /admin/metrics", apiCfg.handlerMetrics)
+
+	// Create new user handler link
+	mux.HandleFunc("POST /api/users", apiCfg.handlerUsersCreate)
 
 	srv := &http.Server{
 		Addr:    ":" + port,
