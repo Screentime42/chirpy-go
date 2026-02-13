@@ -70,9 +70,6 @@ func main() {
 	// Health check endpoint for readiness probes.
 	mux.HandleFunc("GET /api/healthz", handlerReadiness)
 
-	// Validate "Chirps" are within parameters
-	mux.HandleFunc("POST /api/validate_chirp", handlerValidate)
-
 	// Reset the metrics counter.
 	mux.HandleFunc("POST /admin/reset", apiCfg.handlerReset)
 
@@ -81,6 +78,9 @@ func main() {
 
 	// Create new user handler link
 	mux.HandleFunc("POST /api/users", apiCfg.handlerUsersCreate)
+
+	// Validate and create new chirp
+	mux.HandleFunc("POST /api/chirps", apiCfg.handlerChirpsCreate)
 
 	srv := &http.Server{
 		Addr:    ":" + port,

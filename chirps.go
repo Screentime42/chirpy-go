@@ -4,6 +4,9 @@ import (
 	"encoding/json"
 	"net/http"
 	"strings"
+
+	"github.com/Screentime42/chirpy-go/internal/database"
+	"github.com/google/uuid"
 )
 
 // List to hold banned words
@@ -34,11 +37,11 @@ func censorBannedWords(body string, banned map[string]struct{}, replacement stri
 
 // handlerValidate validates a chirp sent in the request body
 // It ensures the JSON is valid and the chirp meets length requirements
-func handlerValidate (w http.ResponseWriter, r *http.Request) {
-	
+func (cfg *apiConfig) handlerChirpsCreate(w http.ResponseWriter, r *http.Request) {
 	// Expected JSON payload structure.
 	type parameters struct {
-		Body string `json:"body"`
+		Body 		string 		`json:"body"`
+		UserID	uuid.UUID	`json:"user_id"`
 	}
 
 	// Decode the incoming JSON body into params
@@ -60,10 +63,17 @@ func handlerValidate (w http.ResponseWriter, r *http.Request) {
 	// Apply censor
 	cleaned := censorBannedWords(params.Body, bannedWords, "****")
 
-	// Respond with a simple JSON payload indicating success
-	respondWithJSON(w, http.StatusOK, map[string]string{
-		"cleaned_body": cleaned,
+	// Insert chirp to DB
+	chirp, err := cfg.db.CreateChirp(r.Context(), database.CreateChirpParams{
+		Body: 	cleaned,
+		UserID: 	params.UserID,
 	})
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "could not create chirp")
+		return
+	}
+
+	respondWithJSON(w, http.StatusCreated, chirp)
 }
 
 
