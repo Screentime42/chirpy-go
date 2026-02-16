@@ -82,6 +82,9 @@ func main() {
 	// Validate and create new chirp
 	mux.HandleFunc("POST /api/chirps", apiCfg.handlerChirpsCreate)
 
+	// Get all chirps
+	mux.HandleFunc("GET /api/chirps", apiCfg.HandlerGetAllChirps)
+
 	srv := &http.Server{
 		Addr:    ":" + port,
 		Handler: mux,

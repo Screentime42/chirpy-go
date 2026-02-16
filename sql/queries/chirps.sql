@@ -10,3 +10,8 @@ VALUES (
 RETURNING id, created_at, updated_at, body, user_id;
 
 
+-- name: GetAllChirps :many
+SELECT * FROM chirps
+ORDER  BY created_at ASC;
+
+

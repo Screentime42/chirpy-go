@@ -105,3 +105,12 @@ func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
 
 
 
+func (cfg *apiConfig) HandlerGetAllChirps(w http.ResponseWriter, r *http.Request) {
+	chirps, err := cfg.db.GetAllChirps(r.Context())
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "could not get chirps")
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, chirps)
+}
