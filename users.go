@@ -4,7 +4,10 @@ import (
 	"encoding/json"
 	"net/http"
 	"time"
+
 	"github.com/google/uuid"
+	"github.com/Screentime42/chirpy-go/internal/auth"
+
 )
 
 type User struct { 
@@ -14,17 +17,26 @@ type User struct {
 	Email string `json:"email"`
 }
 
+
 func (cfg *apiConfig) handlerUsersCreate(w http.ResponseWriter, r *http.Request) {
 	
 	var params struct {
 		Email	string	`json:"email"`
+		Password string `json:"password"`
 	}
+
 	
 	if err := json.NewDecoder(r.Body).Decode(&params); err != nil {
 		respondWithError(w, http.StatusBadRequest, "invalid JSON")
 		return
 	}
 
+	hashedPassword, err := auth.HashPassword(params.Password)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "could not hash password")
+		return
+	}
+	
 	dbUser, err := cfg.db.CreateUser(r.Context(), params.Email)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "could not create user")
