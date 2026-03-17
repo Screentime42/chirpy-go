@@ -88,7 +88,8 @@ func main() {
 	// Get a single chirp
 	mux.HandleFunc("GET /api/chirps/{id}", apiCfg.HandlerGetSingleChirp)
 
-
+	// Login endpoint
+	mux.HandleFunc("POST /api/login", apiCfg.handlerUsersLogin)
 	
 	srv := &http.Server{
 		Addr:    ":" + port,
