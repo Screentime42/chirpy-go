@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/Screentime42/chirpy-go/internal/auth"
 	"github.com/Screentime42/chirpy-go/internal/database"
 	"github.com/google/uuid"
 )
@@ -38,16 +39,29 @@ func censorBannedWords(body string, banned map[string]struct{}, replacement stri
 // handlerValidate validates a chirp sent in the request body
 // It ensures the JSON is valid and the chirp meets length requirements
 func (cfg *apiConfig) handlerChirpsCreate(w http.ResponseWriter, r *http.Request) {
+
+	// user validation
+	token, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		respondWithError(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+
+	userID, err := auth.ValidateJWT(token, cfg.JWTSecret)
+	if err != nil {
+		respondWithError(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+
 	// Expected JSON payload structure.
 	type parameters struct {
 		Body 		string 		`json:"body"`
-		UserID	uuid.UUID	`json:"user_id"`
 	}
 
 	// Decode the incoming JSON body into params
 	decoder := json.NewDecoder(r.Body)
 	params := parameters{}
-	err := decoder.Decode(&params)
+	err = decoder.Decode(&params)
 	if err != nil {
 		// Return a generic error to the client if JSON decoding fails
 		respondWithError(w, http.StatusInternalServerError, "Something went wrong")
@@ -66,7 +80,7 @@ func (cfg *apiConfig) handlerChirpsCreate(w http.ResponseWriter, r *http.Request
 	// Insert chirp to DB
 	chirp, err := cfg.db.CreateChirp(r.Context(), database.CreateChirpParams{
 		Body: 	cleaned,
-		UserID: 	params.UserID,
+		UserID: 	userID,
 	})
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "could not create chirp")
