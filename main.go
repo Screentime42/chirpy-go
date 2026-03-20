@@ -25,6 +25,7 @@ import (
 type apiConfig struct {
 	fileserverHits atomic.Int32
 	db					*database.Queries
+	JWTSecret		string
 	Platform			string
 }
 
