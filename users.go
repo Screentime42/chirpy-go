@@ -60,8 +60,9 @@ func (cfg *apiConfig) handlerUsersCreate(w http.ResponseWriter, r *http.Request)
 func (cfg *apiConfig) handlerUsersLogin(w http.ResponseWriter, r *http.Request) {
 
 	var params struct {
-		Email	string	`json:"email"`
-		Password string `json:"password"`
+		Email					string	`json:"email"`
+		Password 			string 	`json:"password"`
+		ExpiresInSeconds	int		`json:"expires_in_seconds"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&params); err != nil {
@@ -82,11 +83,41 @@ func (cfg *apiConfig) handlerUsersLogin(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	user := User{ 
-		ID: 			dbUser.ID, 
-		CreatedAt: 	dbUser.CreatedAt, 
-		UpdatedAt: 	dbUser.UpdatedAt, 
-		Email: 		dbUser.Email, 
+
+	maxExpiry := 3600
+	expirySeconds := params.ExpiresInSeconds
+
+	if expirySeconds <= 0 {
+		expirySeconds = maxExpiry
+	} else {
+		if expirySeconds > maxExpiry {
+			expirySeconds = maxExpiry
+		}
 	}
-	respondWithJSON(w, http.StatusOK, user)
+
+	token, err := auth.MakeJWT(
+		dbUser.ID,
+		cfg.JWTSecret,
+		time.Duration(expirySeconds) * time.Second,
+	)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "could not create token")
+		return
+	}
+
+	
+	type response struct {
+		User
+		Token		string	`json:"token"`
+	}
+
+	respondWithJSON(w, http.StatusOK, response{
+		User: User{
+			ID:	dbUser.ID,
+			CreatedAt:	dbUser.CreatedAt,
+			UpdatedAt: dbUser.UpdatedAt,
+			Email: dbUser.Email,
+		},
+		Token: token, 
+	})
 }
