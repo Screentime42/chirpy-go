@@ -97,6 +97,9 @@ func main() {
 
 	// Revoke refresh token endpoint
 	mux.HandleFunc("POST /api/revoke", apiCfg.handlerRevoke)
+
+	// Endpoint for users to update their own credentials
+	mux.HandleFunc("PUT /api/users", apiCfg.handlerUsersUpdate)
 	
 	srv := &http.Server{
 		Addr:    ":" + port,

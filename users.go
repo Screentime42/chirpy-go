@@ -133,3 +133,50 @@ func (cfg *apiConfig) handlerUsersLogin(w http.ResponseWriter, r *http.Request) 
 		RefreshToken: refreshToken,
 	})
 }
+
+
+func (cfg *apiConfig) handlerUsersUpdate (w http.ResponseWriter, r *http.Request) {
+	// Auth the user (extract token from header)
+	token, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		respondWithError(w, http.StatusUnauthorized, "could not find token")
+		return
+	}
+
+	userID, err :l= cfg.db.GetUserFromRefreshToken(r.Context(), token)
+	if err != nil {
+		respondWithError(w, http.StatusUnauthorized, "invalid or expired token")
+		return
+	}
+
+
+	// Parse request body
+	type request struct {
+			Email		string	`json:"email"`
+			Password string	`json:"password"`
+	}
+
+	var req request
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		respondWithError(w, http.StatusBadRequest, "invalid JSON")
+		return
+	}
+	
+	// Password hash
+	hashedPassword, err := auth.HashPassword(params.Password)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "could not hash password")
+		return
+	}
+
+	// Update the user in the db
+	updatedUser, err := cfg.db.UpdateUser(r.Context(), database.UpdateUserParams{
+		ID:					userID,
+		Email:				req.Email,
+		HashedPassword:	string(hashedPassword)
+	})
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "could not update user")
+	}
+
+}
