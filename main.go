@@ -91,6 +91,9 @@ func main() {
 
 	// Login endpoint
 	mux.HandleFunc("POST /api/login", apiCfg.handlerUsersLogin)
+
+	// Refresh token endpoint
+	mux.HandleFunc("POST /api/refresh", apiCfg.handlerRefresh)
 	
 	srv := &http.Server{
 		Addr:    ":" + port,

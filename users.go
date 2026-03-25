@@ -105,10 +105,21 @@ func (cfg *apiConfig) handlerUsersLogin(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	refreshToken := auth.MakeRefreshToken()
+	_, err = cfg.db.CreateRefreshToken(r.Context(), database.CreateRefreshTokenParams{
+		Token:		refreshToken,
+		UserID:		dbUser.ID,
+		ExpiresAt:	time.Now().Add(60 * 24 * time.Hour),
+		})
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "could not create refresh token")
+		return
+	}
 	
 	type response struct {
 		User
-		Token		string	`json:"token"`
+		Token				string	`json:"token"`
+		RefreshToken 	string	`json:"refresh_token"`
 	}
 
 	respondWithJSON(w, http.StatusOK, response{
@@ -119,5 +130,6 @@ func (cfg *apiConfig) handlerUsersLogin(w http.ResponseWriter, r *http.Request) 
 			Email: dbUser.Email,
 		},
 		Token: token, 
+		RefreshToken: refreshToken,
 	})
 }
