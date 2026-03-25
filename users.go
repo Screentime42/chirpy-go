@@ -143,7 +143,7 @@ func (cfg *apiConfig) handlerUsersUpdate (w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	userID, err :l= cfg.db.GetUserFromRefreshToken(r.Context(), token)
+	userID, err := auth.ValidateJWT(token, cfg.jwtSecret)
 	if err != nil {
 		respondWithError(w, http.StatusUnauthorized, "invalid or expired token")
 		return
@@ -163,22 +163,23 @@ func (cfg *apiConfig) handlerUsersUpdate (w http.ResponseWriter, r *http.Request
 	}
 	
 	// Password hash
-	hashedPassword, err := auth.HashPassword(params.Password)
+	hashedPassword, err := auth.HashPassword(req.Password)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "could not hash password")
 		return
 	}
 
 	// Update the user in the db
-	updatedUser, err := cfg.db.UpdateUser(r.Context(), database.UpdateUserParams{
+	err = cfg.db.UpdateUser(r.Context(), database.UpdateUserParams{
 		ID:					userID,
 		Email:				req.Email,
-		HashedPassword:	string(hashedPassword)
+		HashedPassword:	hashedPassword,
 	})
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "could not update user")
+		return
 	}
 
-	// Respond with updated user w/o password
-	respondWithJSON(w, http.StatusOK, updatedUser)
+	// Respond with OK
+	w.WriteHeader(http.StatusOK)
 }
