@@ -94,6 +94,9 @@ func main() {
 
 	// Refresh token endpoint
 	mux.HandleFunc("POST /api/refresh", apiCfg.handlerRefresh)
+
+	// Revoke refresh token endpoint
+	mux.HandleFunc("POST /api/revoke", apiCfg.handlerRevoke)
 	
 	srv := &http.Server{
 		Addr:    ":" + port,
