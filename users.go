@@ -143,7 +143,7 @@ func (cfg *apiConfig) handlerUsersUpdate (w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	userID, err := auth.ValidateJWT(token, cfg.jwtSecret)
+	userID, err := auth.ValidateJWT(token, cfg.JWTSecret)
 	if err != nil {
 		respondWithError(w, http.StatusUnauthorized, "invalid or expired token")
 		return
