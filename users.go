@@ -179,4 +179,6 @@ func (cfg *apiConfig) handlerUsersUpdate (w http.ResponseWriter, r *http.Request
 		respondWithError(w, http.StatusInternalServerError, "could not update user")
 	}
 
+	// Respond with updated user w/o password
+	respondWithJSON(w, http.StatusOK, updatedUser)
 }
