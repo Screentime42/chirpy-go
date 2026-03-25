@@ -25,3 +25,9 @@ SET email = $1,
     hashed_password = $2,
     updated_at = NOW()
 WHERE id = $3;
+
+
+-- name: GetUserByID :one
+SELECT id, email, created_at, updated_at
+FROM users
+WHERE id = $1;

@@ -180,6 +180,13 @@ func (cfg *apiConfig) handlerUsersUpdate (w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	// Respond with OK
-	w.WriteHeader(http.StatusOK)
+	// Fetch updated user
+	updatedUser, err := cfg.db.GetUserByID(r.Context(), userID)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "could not fetch updated user")
+		return
+	}
+
+	// Respond with OK and updated user
+	respondWithJSON(w, http.StatusOK, updatedUser)
 }
