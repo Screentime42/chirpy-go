@@ -31,3 +31,10 @@ WHERE id = $3;
 SELECT id, email, created_at, updated_at
 FROM users
 WHERE id = $1;
+
+
+-- name: SetUserChirpyRed :exec
+UPDATE users
+SET is_chirpy_red = TRUE,
+    updated_at = NOW()
+WHERE id = $1;

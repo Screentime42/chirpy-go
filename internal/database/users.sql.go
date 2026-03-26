@@ -103,6 +103,18 @@ func (q *Queries) LookUpUserByEmail(ctx context.Context, email string) (User, er
 	return i, err
 }
 
+const setUserChirpyRed = `-- name: SetUserChirpyRed :exec
+UPDATE users
+SET is_chirpy_red = TRUE,
+    updated_at = NOW()
+WHERE id = $1
+`
+
+func (q *Queries) SetUserChirpyRed(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, setUserChirpyRed, id)
+	return err
+}
+
 const updateUser = `-- name: UpdateUser :exec
 UPDATE users
 SET email = $1,
