@@ -232,5 +232,4 @@ func (cfg *apiConfig) handlerUserUpgraded (w http.ResponseWriter, r *http.Reques
 	}
 
 	w.WriteHeader(http.StatusNoContent)
-	return
 }
