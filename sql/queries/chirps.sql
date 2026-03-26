@@ -14,6 +14,15 @@ RETURNING id, created_at, updated_at, body, user_id;
 SELECT * FROM chirps
 ORDER  BY created_at ASC;
 
+
 -- name: GetSingleChirp :one
 SELECT * FROM chirps
 WHERE id = $1;
+
+
+-- name: DeleteChirpByID :exec
+DELETE FROM chirps
+WHERE   id = $1
+    AND user_id = $2;
+
+

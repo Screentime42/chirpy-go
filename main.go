@@ -100,6 +100,9 @@ func main() {
 
 	// Endpoint for users to update their own credentials
 	mux.HandleFunc("PUT /api/users", apiCfg.handlerUsersUpdate)
+
+	// Route to delete chirp by ID
+	mux.HandleFunc("DELETE /api/chirps/{chirp_id}", apiCfg.handlerDeleteChirpByID)
 	
 	srv := &http.Server{
 		Addr:    ":" + port,
