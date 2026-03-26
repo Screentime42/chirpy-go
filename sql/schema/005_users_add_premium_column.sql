@@ -4,4 +4,4 @@ ADD COLUMN is_chirpy_red BOOL;
 
 -- +goose down
 ALTER TABLE users
-DROP COLUMN is_chirpy_red;
+DROP COLUMN is_chirpy_red;C
