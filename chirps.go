@@ -198,4 +198,5 @@ func (cfg *apiConfig) handlerDeleteChirpByID(w http.ResponseWriter, r *http.Requ
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)
+	return
 }

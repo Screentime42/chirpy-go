@@ -11,10 +11,11 @@ import (
 )
 
 type User struct { 
-	ID uuid.UUID `json:"id"` 
-	CreatedAt time.Time `json:"created_at"` 
-	UpdatedAt time.Time `json:"updated_at"` 
-	Email string `json:"email"`
+	ID 			uuid.UUID 	`json:"id"` 
+	CreatedAt 	time.Time 	`json:"created_at"` 
+	UpdatedAt 	time.Time 	`json:"updated_at"` 
+	Email 		string 		`json:"email"`
+	IsChirpyRed bool 			`json:"is_chirpy_red"`
 }
 
 
@@ -47,10 +48,11 @@ func (cfg *apiConfig) handlerUsersCreate(w http.ResponseWriter, r *http.Request)
 	}
 
 	user := User{ 
-		ID: 			dbUser.ID, 
-		CreatedAt: 	dbUser.CreatedAt, 
-		UpdatedAt: 	dbUser.UpdatedAt, 
-		Email: 		dbUser.Email, 
+		ID: 				dbUser.ID, 
+		CreatedAt: 		dbUser.CreatedAt, 
+		UpdatedAt: 		dbUser.UpdatedAt, 
+		Email: 			dbUser.Email, 
+		IsChirpyRed:	dbUser.IsChirpyRed,
 	}
 
 	respondWithJSON(w, http.StatusCreated, user)
@@ -128,6 +130,7 @@ func (cfg *apiConfig) handlerUsersLogin(w http.ResponseWriter, r *http.Request) 
 			CreatedAt:	dbUser.CreatedAt,
 			UpdatedAt: dbUser.UpdatedAt,
 			Email: dbUser.Email,
+			IsChirpyRed: dbUser.IsChirpyRed,
 		},
 		Token: token, 
 		RefreshToken: refreshToken,
@@ -170,7 +173,7 @@ func (cfg *apiConfig) handlerUsersUpdate (w http.ResponseWriter, r *http.Request
 	}
 
 	// Update the user in the db
-	err = cfg.db.UpdateUser(r.Context(), database.UpdateUserParams{
+	updatedUser, err := cfg.db.UpdateUser(r.Context(), database.UpdateUserParams{
 		ID:					userID,
 		Email:				req.Email,
 		HashedPassword:	hashedPassword,
@@ -180,13 +183,54 @@ func (cfg *apiConfig) handlerUsersUpdate (w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	// Fetch updated user
-	updatedUser, err := cfg.db.GetUserByID(r.Context(), userID)
+
+	// Respond with OK and updated user
+	respondWithJSON(w, http.StatusOK, User{
+		ID:          updatedUser.ID,
+		CreatedAt:   updatedUser.CreatedAt,
+		UpdatedAt:   updatedUser.UpdatedAt,
+		Email:       updatedUser.Email,
+		IsChirpyRed: updatedUser.IsChirpyRed,
+	})
+}
+
+
+func (cfg *apiConfig) handlerUserUpgraded (w http.ResponseWriter, r *http.Request) {
+	
+	// Struct to store JSON payload
+	type WebhookEvent struct {
+		Event	string	`json:"event"`
+		Data struct {
+			UserID string	`json:"user_id"`
+		} `json:"data"`
+	}
+
+	// Decode payload into struct
+	var payload WebhookEvent
+	err := json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "could not fetch updated user")
+		respondWithError(w, http.StatusBadRequest, "invalid JSON")
 		return
 	}
 
-	// Respond with OK and updated user
-	respondWithJSON(w, http.StatusOK, updatedUser)
+	if payload.Event != "user.upgraded" {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+
+	//Convert UserID string to uuid
+	userID, err := uuid.Parse(payload.Data.UserID)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "invalid user id")
+		return
+	}
+
+	err = cfg.db.SetUserChirpyRed(r.Context(), userID)
+	if err != nil {
+		respondWithError(w, http.StatusNotFound, "could not update user")
+	return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+	return
 }

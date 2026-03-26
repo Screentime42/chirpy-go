@@ -29,10 +29,10 @@ type RefreshToken struct {
 }
 
 type User struct {
-	ID             uuid.UUID    `json:"id"`
-	CreatedAt      time.Time    `json:"created_at"`
-	UpdatedAt      time.Time    `json:"updated_at"`
-	Email          string       `json:"email"`
-	HashedPassword string       `json:"hashed_password"`
-	IsChirpyRed    sql.NullBool `json:"is_chirpy_red"`
+	ID             uuid.UUID `json:"id"`
+	CreatedAt      time.Time `json:"created_at"`
+	UpdatedAt      time.Time `json:"updated_at"`
+	Email          string    `json:"email"`
+	HashedPassword string    `json:"hashed_password"`
+	IsChirpyRed    bool      `json:"is_chirpy_red"`
 }

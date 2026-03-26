@@ -1,7 +1,7 @@
--- +goose up
+-- +goose Up
 ALTER TABLE users
-ADD COLUMN is_chirpy_red BOOL;
+ADD COLUMN is_chirpy_red BOOL NOT NULL DEFAULT FALSE;
 
--- +goose down
+-- +goose Down
 ALTER TABLE users
-DROP COLUMN is_chirpy_red;C
+DROP COLUMN is_chirpy_red;

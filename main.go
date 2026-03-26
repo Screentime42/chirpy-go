@@ -104,6 +104,10 @@ func main() {
 	// Route to delete chirp by ID
 	mux.HandleFunc("DELETE /api/chirps/{chirp_id}", apiCfg.handlerDeleteChirpByID)
 	
+	// Upgrade user endpoint
+	mux.HandleFunc("POST /api/polka/webhooks", apiCfg.handlerUserUpgraded)
+
+
 	srv := &http.Server{
 		Addr:    ":" + port,
 		Handler: mux,
