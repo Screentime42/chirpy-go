@@ -27,6 +27,7 @@ type apiConfig struct {
 	db					*database.Queries
 	JWTSecret		string
 	Platform			string
+	PolkaKey			string
 }
 
 func main() {
@@ -45,6 +46,11 @@ func main() {
 	platform := os.Getenv("PLATFORM")
 	if platform == "" {
 		platform = "prod"
+	}
+
+	polkaKey := os.Getenv("POLKA_KEY")
+	if polkaKey == "" {
+		log.Fatal("POLKA_KEY is required")
 	}
 
 	dbConn, err := sql.Open("postgres", dbURL)
