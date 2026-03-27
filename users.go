@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"time"
 	"errors"
-	"database/sql"
 
 	"github.com/Screentime42/chirpy-go/internal/auth"
 	"github.com/Screentime42/chirpy-go/internal/database"
@@ -207,9 +206,19 @@ func (cfg *apiConfig) handlerUserUpgraded (w http.ResponseWriter, r *http.Reques
 		} `json:"data"`
 	}
 
+	apiKey, err := auth.GetAPIKey(r.Header)
+	if err != nil {
+		respondWithError(w, http.StatusUnauthorized, "unauthorised user")
+		return
+	}
+	if apiKey != cfg.PolkaKey {
+		respondWithError(w, http.StatusUnauthorized, "unauthorised user")
+		return
+	}
+
 	// Decode payload into struct
 	var payload WebhookEvent
-	err := json.NewDecoder(r.Body).Decode(&payload)
+	err = json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, "invalid JSON")
 		return
@@ -227,7 +236,7 @@ func (cfg *apiConfig) handlerUserUpgraded (w http.ResponseWriter, r *http.Reques
 			return
 		}
 		respondWithError(w, http.StatusInternalServerError, "could not update user")
-		return	
+		return
 	}
 
 	w.WriteHeader(http.StatusNoContent)
