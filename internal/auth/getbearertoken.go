@@ -6,10 +6,12 @@ import (
 	"strings"
 )
 
+// define errors for reuse
+var ErrNoAuthHeader = errors.New("authorization header missing")
+var ErrInvalidAuthHeader = errors.New("invalid authorization header")
+
 func GetBearerToken(headers http.Header) (string, error) {
-	// define errors for reuse
-	ErrNoAuthHeader := errors.New("authorization header missing")
-	ErrInvalidAuthHeader := errors.New("invalid authorization header")
+
 
 	// lookup auth header
 	authHeader := headers.Get("Authorization")
