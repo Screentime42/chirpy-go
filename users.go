@@ -201,7 +201,7 @@ func (cfg *apiConfig) handlerUserUpgraded (w http.ResponseWriter, r *http.Reques
 	type WebhookEvent struct {
 		Event	string	`json:"event"`
 		Data struct {
-			UserID string	`json:"user_id"`
+			UserID uuid.UUID	`json:"user_id"`
 		} `json:"data"`
 	}
 
@@ -228,14 +228,7 @@ func (cfg *apiConfig) handlerUserUpgraded (w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	//Convert UserID string to uuid
-	userID, err := uuid.Parse(payload.Data.UserID)
-	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "invalid user id")
-		return
-	}
-
-	err = cfg.db.SetUserChirpyRed(r.Context(), userID)
+	err = cfg.db.SetUserChirpyRed(r.Context(), payload.Data.UserID)
 	if err != nil {
 		respondWithError(w, http.StatusNotFound, "could not update user")
 	return
