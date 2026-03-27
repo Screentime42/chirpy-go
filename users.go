@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 	"errors"
+	"database/sql"
 
 	"github.com/Screentime42/chirpy-go/internal/auth"
 	"github.com/Screentime42/chirpy-go/internal/database"
