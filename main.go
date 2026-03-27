@@ -64,6 +64,7 @@ func main() {
 		fileserverHits: 	atomic.Int32{},
 		db:             	dbQueries,
 		Platform:			platform,
+		PolkaKey:  			polkaKey,		
 	}
 
 

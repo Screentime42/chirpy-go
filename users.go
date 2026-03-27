@@ -207,19 +207,9 @@ func (cfg *apiConfig) handlerUserUpgraded (w http.ResponseWriter, r *http.Reques
 		} `json:"data"`
 	}
 
-	apiKey, err := auth.GetAPIKey(r.Header)
-	if err != nil {
-		respondWithError(w, http.StatusUnauthorized, "unauthorised user")
-		return
-	}
-	if apiKey != cfg.PolkaKey {
-		respondWithError(w, http.StatusUnauthorized, "unauthorised user")
-		return
-	}
-
 	// Decode payload into struct
 	var payload WebhookEvent
-	err = json.NewDecoder(r.Body).Decode(&payload)
+	err := json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, "invalid JSON")
 		return
