@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"time"
+	"errors"
 
 	"github.com/Screentime42/chirpy-go/internal/auth"
 	"github.com/Screentime42/chirpy-go/internal/database"
@@ -230,8 +231,12 @@ func (cfg *apiConfig) handlerUserUpgraded (w http.ResponseWriter, r *http.Reques
 
 	err = cfg.db.SetUserChirpyRed(r.Context(), payload.Data.UserID)
 	if err != nil {
-		respondWithError(w, http.StatusNotFound, "could not update user")
-	return
+		if errors.Is(err, sql.ErrNoRows) {
+			respondWithError(w, http.StatusNotFound, "user not found")
+			return
+		}
+		respondWithError(w, http.StatusInternalServerError, "could not update user")
+		return	
 	}
 
 	w.WriteHeader(http.StatusNoContent)
