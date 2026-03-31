@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strings"
+	"sort"
 
 	"github.com/Screentime42/chirpy-go/internal/auth"
 	"github.com/Screentime42/chirpy-go/internal/database"
@@ -120,7 +121,7 @@ func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
 
 
 func (cfg *apiConfig) HandlerGetAllChirps(w http.ResponseWriter, r *http.Request) {
-	//Get author id from url query
+	// Get author id from url query
 	authorID := r.URL.Query().Get("author_id")
 	
 	// If authorID is present execute otherwise skip
@@ -132,7 +133,7 @@ func (cfg *apiConfig) HandlerGetAllChirps(w http.ResponseWriter, r *http.Request
 			return
 		}
 
-		// 
+		// Return chirps that match with the authorid
 		chirps, err := cfg.db.GetChirpsByAuthorID(r.Context(), id)
 		if err != nil {
 			respondWithError(w, http.StatusInternalServerError, "could not get chirps")
@@ -141,11 +142,24 @@ func (cfg *apiConfig) HandlerGetAllChirps(w http.ResponseWriter, r *http.Request
 		respondWithJSON(w, http.StatusOK, chirps)
 		return
 	}
+
 	
 	chirps, err := cfg.db.GetAllChirps(r.Context())
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "could not get chirps")
 		return
+	}
+
+	// Get sort instruction
+	sortValue := r.URL.Query().Get("sort")
+	
+	// If sortValue is present execute otherwise skip. As chirps are default ASC sorted, only sorted if sortValue is "desc"
+	if sortValue != "" {
+		if sortValue == "desc" {
+			sort.Slice(chirps, func(i, j int) bool {
+				return chirps[j].CreatedAt.Before(chirps[i].CreatedAt)
+			})
+		}
 	}
 
 	respondWithJSON(w, http.StatusOK, chirps)
