@@ -120,6 +120,28 @@ func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
 
 
 func (cfg *apiConfig) HandlerGetAllChirps(w http.ResponseWriter, r *http.Request) {
+	//Get author id from url query
+	authorID := r.URL.Query().Get("author_id")
+	
+	// If authorID is present execute otherwise skip
+	if authorID != "" {
+		// Parse authorID from string to uuid
+		id, err := uuid.Parse(authorID)
+		if err != nil {
+			respondWithError(w, http.StatusBadRequest, "could not parse id")
+			return
+		}
+
+		// 
+		chirps, err := cfg.db.GetChirpsByAuthorID(r.Context(), id)
+		if err != nil {
+			respondWithError(w, http.StatusInternalServerError, "could not get chirps")
+			return
+		}
+		respondWithJSON(w, http.StatusOK, chirps)
+		return
+	}
+	
 	chirps, err := cfg.db.GetAllChirps(r.Context())
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "could not get chirps")
